@@ -1,0 +1,14 @@
+name: student_calculator
+description: Simple Dart console app to calculate student grades from Excel.
+version: 1.0.0
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  excel: ^4.0.6
+  spreadsheet_decoder: ^2.2.0
+
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.24.0
+
