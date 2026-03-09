@@ -34,7 +34,7 @@ fun main() {
     // 2. Demonstrate collection processing
     println("--- All Students (using forEach) ---")
     students.forEach { student ->
-        println("${student.name} -> Total: ${student.calculateTotal()} Grade: ${student.calculateGrade()}")
+        println("${student.name} -> Total: ${student.calculateTotal()} G: ${student.calculateGrade()}")
     }
 
     // Filter passed students
