@@ -1,0 +1,10 @@
+.gradle/
+build/
+*.zip
+kotlinc/
+Smart-Stud/
+.kotlin/
+kotlin-compiler.zip
+gradle-8.6-bin.zip
+gradlew
+gradle/

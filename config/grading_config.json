@@ -1,0 +1,14 @@
+{
+  "appName": "Student Grading System",
+  "passMarkTotal": 40,
+  "caMaxMark": 40,
+  "examMaxMark": 60,
+  "gradeBands": [
+    { "grade": "A", "minScore": 70, "maxScore": 100, "remark": "Excellent" },
+    { "grade": "B", "minScore": 60, "maxScore": 69,  "remark": "Good" },
+    { "grade": "C", "minScore": 50, "maxScore": 59,  "remark": "Average" },
+    { "grade": "D", "minScore": 45, "maxScore": 49,  "remark": "Below Average" },
+    { "grade": "E", "minScore": 40, "maxScore": 44,  "remark": "Poor" },
+    { "grade": "F", "minScore": 0,  "maxScore": 39,  "remark": "Fail" }
+  ]
+}

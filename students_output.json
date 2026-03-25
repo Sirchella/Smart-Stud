@@ -1,0 +1,227 @@
+[
+    {
+        "name": "Alice Johnson",
+        "caMark": 3,
+        "examMark": 5,
+        "total": 8,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Brian Okafor",
+        "caMark": 6,
+        "examMark": 10,
+        "total": 16,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Cynthia Mbarga",
+        "caMark": 9,
+        "examMark": 15,
+        "total": 24,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Daniel Smith",
+        "caMark": 12,
+        "examMark": 20,
+        "total": 32,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Esther Nkom",
+        "caMark": 15,
+        "examMark": 25,
+        "total": 40,
+        "grade": "E",
+        "passed": true,
+        "remark": "Poor"
+    },
+    {
+        "name": "Franklin Ade",
+        "caMark": 18,
+        "examMark": 30,
+        "total": 48,
+        "grade": "D",
+        "passed": true,
+        "remark": "Below Average"
+    },
+    {
+        "name": "Grace Williams",
+        "caMark": 21,
+        "examMark": 35,
+        "total": 56,
+        "grade": "C",
+        "passed": true,
+        "remark": "Average"
+    },
+    {
+        "name": "Henry Tambo",
+        "caMark": 24,
+        "examMark": 40,
+        "total": 64,
+        "grade": "B",
+        "passed": true,
+        "remark": "Good"
+    },
+    {
+        "name": "Irene Lopez",
+        "caMark": 27,
+        "examMark": 45,
+        "total": 72,
+        "grade": "A",
+        "passed": true,
+        "remark": "Excellent"
+    },
+    {
+        "name": "James Brown",
+        "caMark": 30,
+        "examMark": 50,
+        "total": 80,
+        "grade": "A",
+        "passed": true,
+        "remark": "Excellent"
+    },
+    {
+        "name": "Karen Ndzi",
+        "caMark": 33,
+        "examMark": 55,
+        "total": 88,
+        "grade": "A",
+        "passed": true,
+        "remark": "Excellent"
+    },
+    {
+        "name": "Leo Martin",
+        "caMark": 36,
+        "examMark": 60,
+        "total": 96,
+        "grade": "A",
+        "passed": true,
+        "remark": "Excellent"
+    },
+    {
+        "name": "Monica Ngassa",
+        "caMark": 39,
+        "examMark": 4,
+        "total": 43,
+        "grade": "E",
+        "passed": true,
+        "remark": "Poor"
+    },
+    {
+        "name": "Nathan Cooper",
+        "caMark": 1,
+        "examMark": 9,
+        "total": 10,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Olivia Perez",
+        "caMark": 4,
+        "examMark": 14,
+        "total": 18,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Patrick Ewane",
+        "caMark": 7,
+        "examMark": 19,
+        "total": 26,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Queen Amina",
+        "caMark": 10,
+        "examMark": 24,
+        "total": 34,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    },
+    {
+        "name": "Robert Kim",
+        "caMark": 13,
+        "examMark": 29,
+        "total": 42,
+        "grade": "E",
+        "passed": true,
+        "remark": "Poor"
+    },
+    {
+        "name": "Sophia Ndzi",
+        "caMark": 16,
+        "examMark": 34,
+        "total": 50,
+        "grade": "C",
+        "passed": true,
+        "remark": "Average"
+    },
+    {
+        "name": "Thomas Anderson",
+        "caMark": 19,
+        "examMark": 39,
+        "total": 58,
+        "grade": "C",
+        "passed": true,
+        "remark": "Average"
+    },
+    {
+        "name": "Uche Obi",
+        "caMark": 22,
+        "examMark": 44,
+        "total": 66,
+        "grade": "B",
+        "passed": true,
+        "remark": "Good"
+    },
+    {
+        "name": "Vanessa Moore",
+        "caMark": 25,
+        "examMark": 49,
+        "total": 74,
+        "grade": "A",
+        "passed": true,
+        "remark": "Excellent"
+    },
+    {
+        "name": "William Fon",
+        "caMark": 28,
+        "examMark": 54,
+        "total": 82,
+        "grade": "A",
+        "passed": true,
+        "remark": "Excellent"
+    },
+    {
+        "name": "Xavier Dupont",
+        "caMark": 31,
+        "examMark": 59,
+        "total": 90,
+        "grade": "A",
+        "passed": true,
+        "remark": "Excellent"
+    },
+    {
+        "name": "Yvonne Bello",
+        "caMark": 34,
+        "examMark": 3,
+        "total": 37,
+        "grade": "F",
+        "passed": false,
+        "remark": "Fail"
+    }
+]
