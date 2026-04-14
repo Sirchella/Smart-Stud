@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:light/light.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SensorState {
   final double noiseLevels; // dB
   final double illumination; // lux
   final double motionEventCount;
-  final String location; // GPS mock
+  final String location;
 
   SensorState({
     this.noiseLevels = 0.0,
@@ -32,19 +36,32 @@ class SensorState {
 }
 
 class SensorNotifier extends StateNotifier<SensorState> {
-  Timer? _timer;
-  final _random = Random();
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
+  StreamSubscription<int>? _lightSubscription;
+  StreamSubscription<Position>? _positionSubscription;
+  Timer? _noiseTimer;
+  Light? _light;
+
+  static const _noiseChannel = MethodChannel('com.ssem.ssem/noise');
 
   SensorNotifier() : super(SensorState());
 
-  void startMonitoring() {
-    // 500ms sampling rate as per spec
-    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-      _updateSensors();
-    });
+  Future<void> startMonitoring() async {
+    _initAccelerometer();
+    await _initGeolocator();
+    await _initNoiseSampler();
+    _initLightSensor();
+  }
 
-    // Use accelerometerEventStream() — replaces the deprecated accelerometerEvents
+  void stopMonitoring() {
+    _accelerometerSubscription?.cancel();
+    _lightSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _noiseTimer?.cancel();
+    _noiseChannel.invokeMethod('stop').catchError((_) {});
+  }
+
+  void _initAccelerometer() {
     _accelerometerSubscription =
         accelerometerEventStream().listen((AccelerometerEvent event) {
       final double acceleration =
@@ -55,20 +72,88 @@ class SensorNotifier extends StateNotifier<SensorState> {
     });
   }
 
-  void stopMonitoring() {
-    _timer?.cancel();
-    _accelerometerSubscription?.cancel();
+  Future<void> _initGeolocator() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      state = state.copyWith(location: 'Disabled');
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        state = state.copyWith(location: 'Denied');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      state = state.copyWith(location: 'Denied Forever');
+      return;
+    }
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          locationSettings:
+              const LocationSettings(accuracy: LocationAccuracy.low));
+      state = state.copyWith(
+          location:
+              '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}');
+
+      _positionSubscription = Geolocator.getPositionStream(
+              locationSettings:
+                  const LocationSettings(accuracy: LocationAccuracy.low))
+          .listen((Position pos) {
+        state = state.copyWith(
+            location:
+                '${pos.latitude.toStringAsFixed(4)}, ${pos.longitude.toStringAsFixed(4)}');
+      });
+    } catch (e) {
+      state = state.copyWith(location: 'Error');
+    }
   }
 
-  void _updateSensors() {
-    final double newNoise = 30.0 + _random.nextDouble() * 40.0; // 30–70 dB
-    final double newLux = 200.0 + _random.nextDouble() * 600.0; // 200–800 lux
+  /// Uses Android MediaRecorder via a MethodChannel to sample amplitude
+  /// and converts it to approximate dB. Falls back to 0.0 on error.
+  Future<void> _initNoiseSampler() async {
+    final status = await Permission.microphone.request();
+    if (!status.isGranted) return;
 
-    state = state.copyWith(
-      noiseLevels: newNoise,
-      illumination: newLux,
-      location: 'Library Main Hall',
-    );
+    try {
+      await _noiseChannel.invokeMethod('start');
+    } catch (_) {
+      // Native side not implemented yet — use fallback polling
+    }
+
+    _noiseTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
+      try {
+        final amplitude =
+            await _noiseChannel.invokeMethod<double>('getAmplitude');
+        if (amplitude != null && amplitude > 0) {
+          // Convert amplitude (0–32768) to approximate dB (20–90 range)
+          final db = 20 * log(amplitude) / ln10;
+          state = state.copyWith(noiseLevels: db.clamp(0.0, 120.0));
+        }
+      } catch (_) {
+        // Channel not available — leave last value
+      }
+    });
+  }
+
+  void _initLightSensor() {
+    _light = Light();
+    try {
+      _lightSubscription = _light?.lightSensorStream.listen((int luxValue) {
+        state = state.copyWith(illumination: luxValue.toDouble());
+      });
+    } on Exception catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
   }
 
   @override

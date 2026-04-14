@@ -4,6 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     const ProviderScope(
       child: SSEMApp(),

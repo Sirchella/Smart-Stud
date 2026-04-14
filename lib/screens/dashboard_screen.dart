@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../core/constants/colors.dart';
 import '../providers/environment_provider.dart';
 import '../providers/sensor_provider.dart';
@@ -27,7 +28,7 @@ class DashboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Tue, 18 Mar 2026',
+                        DateFormat('EEE, d MMM yyyy').format(DateTime.now()),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: SSEMColors.textMain.withValues(alpha: 0.6),
                             ),
@@ -159,9 +160,9 @@ class DashboardScreen extends ConsumerWidget {
                     icon: Icons.vibration,
                     color: SSEMColors.accentPurple,
                   ),
-                  const _MetricCard(
+                  _MetricCard(
                     title: 'LOCATION',
-                    value: 'Library',
+                    value: sensors.location,
                     icon: Icons.location_on_outlined,
                     color: SSEMColors.primaryGreen,
                   ),

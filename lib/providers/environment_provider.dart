@@ -7,7 +7,7 @@ class EnvironmentState {
 
   EnvironmentState({
     this.score = 0.0,
-    this.status = 'Great',
+    this.status = 'Poor',
   });
 }
 
