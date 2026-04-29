@@ -44,7 +44,10 @@ class SensorNotifier extends StateNotifier<SensorState> {
 
   static const _noiseChannel = MethodChannel('com.ssem.ssem/noise');
 
-  SensorNotifier() : super(SensorState());
+  SensorNotifier() : super(SensorState()) {
+    // Auto-start all sensors immediately when provider is created
+    startMonitoring();
+  }
 
   Future<void> startMonitoring() async {
     _initAccelerometer();
@@ -129,14 +132,20 @@ class SensorNotifier extends StateNotifier<SensorState> {
       // Native side not implemented yet — use fallback polling
     }
 
-    _noiseTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
+    _noiseTimer = Timer.periodic(const Duration(milliseconds: 300), (_) async {
       try {
         final amplitude =
             await _noiseChannel.invokeMethod<double>('getAmplitude');
-        if (amplitude != null && amplitude > 0) {
-          // Convert amplitude (0–32768) to approximate dB (20–90 range)
-          final db = 20 * log(amplitude) / ln10;
-          state = state.copyWith(noiseLevels: db.clamp(0.0, 120.0));
+        if (amplitude != null && amplitude > 1) {
+          // Convert amplitude (0–32768) to dB: 20 * log10(amplitude)
+          // amplitude=1 → ~0 dB, amplitude=32768 → ~90 dB
+          final rawDb = 20 * log(amplitude) / ln10;
+          // Add a realistic ambient floor of ~30 dB so it never shows 0
+          final db = (rawDb + 30).clamp(30.0, 120.0);
+          state = state.copyWith(noiseLevels: db);
+        } else {
+          // No sound detected — show ambient floor ~30 dB
+          state = state.copyWith(noiseLevels: 30.0);
         }
       } catch (_) {
         // Channel not available — leave last value
@@ -147,12 +156,17 @@ class SensorNotifier extends StateNotifier<SensorState> {
   void _initLightSensor() {
     _light = Light();
     try {
-      _lightSubscription = _light?.lightSensorStream.listen((int luxValue) {
-        state = state.copyWith(illumination: luxValue.toDouble());
-      });
-    } on Exception catch (e) {
-      // ignore: avoid_print
-      print(e);
+      _lightSubscription = _light?.lightSensorStream.listen(
+        (int luxValue) {
+          state = state.copyWith(illumination: luxValue.toDouble());
+        },
+        onError: (e) {
+          // Light sensor unavailable on this device — leave at 0
+        },
+        cancelOnError: false,
+      );
+    } on Exception catch (_) {
+      // Other errors — ignore
     }
   }
 

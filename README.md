@@ -16,9 +16,9 @@
 
 SSEM is a cross-platform mobile application built in **Flutter and Dart** that helps students study more effectively by monitoring the physical quality of their study environment in real time.
 
-The app reads from four built-in phone sensors — the **microphone**, the **light sensor**, the **accelerometer**, and the **GPS** — and combines the readings into a single live **Environment Score** between 0 and 100. A high score means conditions are good. A low score means something is working against concentration.
+The app reads from five sensor inputs — the **microphone**, the **light sensor**, the **accelerometer**, the **GPS**, and the **camera (heart rate)** — and scores them against the user's own definition of their ideal study space.
 
-Students can start and track study sessions, review past performance, and export their data as a PDF report or CSV spreadsheet.
+You define what your perfect environment looks like (noise level, lighting, heart rate, motion tolerance). The app then measures how closely your current conditions match that ideal, and continuously nudges you toward it.
 
 ---
 
@@ -34,27 +34,34 @@ Students can start and track study sessions, review past performance, and export
 
 ## Core Features
 
-- **Live environment score** — a 0–100 composite number updated in real time from all four sensors
+- **Live environment score** — a 0–100 composite updated in real time, scored against *your* personal ideal
+- **Ideal environment profile** — define your perfect study space (noise, light, heart rate, motion limit); the app measures how closely your current conditions match it and shows a % match badge on the dashboard
+- **"Capture as ideal" shortcut** — one tap in Settings snapshots your current conditions and saves them as your new ideal
 - **Noise monitoring** — ambient sound level in decibels via the device microphone (native Android `MediaRecorder` through a Flutter MethodChannel)
 - **Light monitoring** — illumination in lux via the built-in light sensor using the `light` package
+- **Heart rate (PPG)** — tap MEASURE on the dashboard, place your fingertip over the back camera lens; the torch illuminates your skin and the app detects blood-volume pulses to calculate BPM
 - **Distraction detection** — excessive phone movement counted as distraction events via the accelerometer (`sensors_plus`)
 - **GPS session tagging** — each session is tagged with the device's GPS location via `geolocator`
 - **Session management** — start, pause, and stop study sessions with a live duration timer and alert counter
 - **Session history** — browse past sessions filtered by 1 week, 1 month, or all time
 - **Multi-format export** — export session data as PDF or CSV and share via the system share sheet
 - **Dark / Light theme** — toggle between themes in Settings
-- **Configurable thresholds** — set custom noise and light limits in Settings
 
 ---
 
 ## Environment Score Algorithm
 
-| Component | Ideal | Scoring Logic |
-|-----------|-------|---------------|
-| Noise | ≤ 40 dB | `100 − (dB − 40).clamp(0, 100)` |
-| Light | 400 lux | `100 − \|lux − 400\|.clamp(0, 50)` |
-| Motion | 0 events | `−(events × 5).clamp(0, 100)` penalty |
-| **Total** | — | `((noise + light) / 2) − motion penalty` |
+All scoring is relative to the **user's own ideal profile** — not fixed defaults.
+
+| Component | How it's scored |
+|-----------|----------------|
+| Noise | `100 − |currentDB − idealDB|` — full score when you're at your ideal level |
+| Light | `100 − (|currentLux − idealLux| / 10)` — full score at your ideal brightness |
+| Motion | `−(excessEvents × 5)` penalty — events beyond your tolerance limit |
+| Heart rate | `−(|currentBPM − idealBPM| × 1.5)` penalty (max −30 pts) |
+| **Total** | `((noise + light) / 2) − motion penalty − HR penalty` |
+
+**Match %** — shown as a badge on the dashboard — answers "how close is this spot to my ideal right now?"
 
 | Score | Status |
 |-------|--------|
@@ -94,6 +101,8 @@ SSEM uses a warm, organic design language — calm and focused, never clinical o
 | Light sensor | light package | `light: ^5.0.0` |
 | Accelerometer | sensors_plus | `sensors_plus: ^4.0.2` |
 | GPS | geolocator | `geolocator: ^14.0.2` |
+| Heart rate (PPG) | camera | `camera: ^0.11.0` |
+| Profile persistence | shared_preferences | `shared_preferences: ^2.2.2` |
 | Permissions | permission_handler | `permission_handler: ^12.0.1` |
 | PDF export | pdf | `pdf: ^3.10.7` |
 | CSV export | csv | `csv: ^6.0.0` |
@@ -121,8 +130,10 @@ lib/
 │   ├── reports_screen.dart         # History, filters, PDF/CSV export
 │   └── settings_screen.dart        # Thresholds, theme toggle, privacy
 ├── providers/
-│   ├── environment_provider.dart   # Aggregate score calculation
-│   ├── sensor_provider.dart        # All four sensor streams
+│   ├── environment_provider.dart   # Score calc — reads profile + sensors + HR
+│   ├── sensor_provider.dart        # All four environmental sensor streams
+│   ├── heart_rate_provider.dart    # Camera PPG heart rate measurement
+│   ├── profile_provider.dart       # User's ideal environment (SharedPreferences)
 │   ├── session_provider.dart       # Active session state machine
 │   ├── theme_provider.dart         # Dark/light toggle
 │   └── export_service_provider.dart
@@ -204,6 +215,7 @@ adb install build/app/outputs/flutter-apk/app-release.apk
 | `ACCESS_COARSE_LOCATION` | Android | Fallback network-based location |
 | `HIGH_SAMPLING_RATE_SENSORS` | Android | Accelerometer + light sensor access |
 | `WRITE_EXTERNAL_STORAGE` | Android ≤ 9 | PDF / CSV file export |
+| `CAMERA` | Android | Heart rate measurement via camera PPG |
 | `VIBRATE` | Android | Haptic feedback on distraction alerts |
 
 All runtime permissions are requested before the first session starts. If a permission is denied the affected sensor is gracefully disabled.
