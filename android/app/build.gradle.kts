@@ -8,7 +8,6 @@ plugins {
 android {
     namespace = "com.ssem.ssem"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,6 +34,13 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    packaging {
+        jniLibs {
+            // Keep native .so files unstripped — avoids NDK strip-tool requirement
+            keepDebugSymbols += listOf("**/*.so")
         }
     }
 }

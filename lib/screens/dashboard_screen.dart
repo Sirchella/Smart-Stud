@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../core/constants/colors.dart';
 import '../providers/environment_provider.dart';
+import '../providers/heart_rate_provider.dart';
+import '../providers/profile_provider.dart';
 import '../providers/sensor_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -11,15 +14,18 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final envState = ref.watch(environmentProvider);
     final sensors = ref.watch(sensorProvider);
+    final heartRate = ref.watch(heartRateProvider);
+    final profile = ref.watch(profileProvider);
 
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // ── Header ──────────────────────────────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -27,19 +33,23 @@ class DashboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Tue, 18 Mar 2026',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: SSEMColors.textMain.withValues(alpha: 0.6),
-                            ),
+                        DateFormat('EEE, d MMM yyyy').format(DateTime.now()),
+                        style:
+                            Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: SSEMColors.textMain
+                                      .withValues(alpha: 0.6),
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Hi, Aja! 👋',
-                        style:
-                            Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ],
                   ),
@@ -52,13 +62,14 @@ class DashboardScreen extends ConsumerWidget {
                       border: Border.all(
                           color: SSEMColors.border.withValues(alpha: 0.1)),
                     ),
-                    child: const Icon(Icons.notifications_none, size: 24),
+                    child:
+                        const Icon(Icons.notifications_none, size: 24),
                   ),
                 ],
               ),
               const SizedBox(height: 40),
 
-              // Environment Score
+              // ── Environment Score ring ───────────────────────────────────
               Center(
                 child: Column(
                   children: [
@@ -72,7 +83,7 @@ class DashboardScreen extends ConsumerWidget {
                             value: envState.score / 100,
                             strokeWidth: 12,
                             backgroundColor: SSEMColors.surfaceCard,
-                            color: SSEMColors.primaryGreen,
+                            color: _scoreColor(envState.score),
                           ),
                         ),
                         Column(
@@ -97,30 +108,39 @@ class DashboardScreen extends ConsumerWidget {
                                   ?.copyWith(
                                     letterSpacing: 2.0,
                                     fontWeight: FontWeight.w600,
-                                    color: SSEMColors.primaryGreen,
+                                    color: _scoreColor(envState.score),
                                   ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Text(
                       'ENVIRONMENT SCORE',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 10,
-                            letterSpacing: 2.8,
-                            fontWeight: FontWeight.w600,
-                            color: SSEMColors.textMain.withValues(alpha: 0.4),
-                          ),
+                      style:
+                          Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                                letterSpacing: 2.8,
+                                fontWeight: FontWeight.w600,
+                                color:
+                                    SSEMColors.textMain.withValues(alpha: 0.4),
+                              ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ── Profile match badge ──────────────────────────────
+                    _ProfileMatchBadge(
+                      matchPercent: envState.matchPercent,
+                      profileName: profile.name,
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
 
-              // Study Metrics label
+              // ── Study Metrics ────────────────────────────────────────────
               Text(
                 'STUDY METRICS',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -132,7 +152,6 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Metrics grid
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -155,25 +174,212 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   _MetricCard(
                     title: 'MOTION',
-                    value: '${sensors.motionEventCount.toInt()} pts',
+                    value: '${sensors.motionEventCount.toInt()} events',
                     icon: Icons.vibration,
                     color: SSEMColors.accentPurple,
                   ),
-                  const _MetricCard(
+                  _MetricCard(
                     title: 'LOCATION',
-                    value: 'Library',
+                    value: sensors.location,
                     icon: Icons.location_on_outlined,
                     color: SSEMColors.primaryGreen,
                   ),
                 ],
               ),
+
+              const SizedBox(height: 32),
+
+              // ── Vitals ───────────────────────────────────────────────────
+              Text(
+                'VITALS',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 10,
+                      letterSpacing: 2.8,
+                      fontWeight: FontWeight.w600,
+                      color: SSEMColors.textMain,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              _HeartRateCard(heartRate: heartRate),
+
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
     );
   }
+
+  Color _scoreColor(double score) {
+    if (score >= 85) return SSEMColors.primaryGreen;
+    if (score >= 60) return SSEMColors.primaryGreen.withValues(alpha: 0.75);
+    if (score >= 40) return SSEMColors.secondaryOrange;
+    return Colors.redAccent;
+  }
 }
+
+// ── Profile match badge ────────────────────────────────────────────────────
+
+class _ProfileMatchBadge extends StatelessWidget {
+  final double matchPercent;
+  final String profileName;
+
+  const _ProfileMatchBadge({
+    required this.matchPercent,
+    required this.profileName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = matchPercent.toInt();
+    final Color color;
+    if (pct >= 80) {
+      color = SSEMColors.primaryGreen;
+    } else if (pct >= 55) {
+      color = SSEMColors.secondaryOrange;
+    } else {
+      color = Colors.redAccent;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.tune, color: color, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            '$pct% match · $profileName',
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Heart rate card ────────────────────────────────────────────────────────
+
+class _HeartRateCard extends ConsumerWidget {
+  final HeartRateState heartRate;
+
+  const _HeartRateCard({required this.heartRate});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Color accentColor = _bpmColor(heartRate.bpm);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: SSEMColors.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: SSEMColors.border.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          // BPM display
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(Icons.favorite, color: accentColor, size: 28),
+          ),
+          const SizedBox(width: 16),
+
+          // Status + BPM text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  heartRate.bpm > 0
+                      ? '${heartRate.bpm} BPM'
+                      : '-- BPM',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  heartRate.status,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: SSEMColors.textMain.withValues(alpha: 0.55),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Measure / Stop button
+          GestureDetector(
+            onTap: () {
+              if (heartRate.isMeasuring) {
+                ref.read(heartRateProvider.notifier).stopMeasuring();
+              } else {
+                ref.read(heartRateProvider.notifier).startMeasuring();
+              }
+            },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: heartRate.isMeasuring
+                    ? Colors.redAccent.withValues(alpha: 0.12)
+                    : SSEMColors.primaryGreen.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: heartRate.isMeasuring
+                      ? Colors.redAccent.withValues(alpha: 0.4)
+                      : SSEMColors.primaryGreen.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Text(
+                heartRate.isMeasuring ? 'STOP' : 'MEASURE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.0,
+                  color: heartRate.isMeasuring
+                      ? Colors.redAccent
+                      : SSEMColors.primaryGreen,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _bpmColor(int bpm) {
+    if (bpm == 0) return SSEMColors.textMain.withValues(alpha: 0.4);
+    if (bpm < 60 || bpm > 100) return SSEMColors.secondaryOrange;
+    return Colors.redAccent;
+  }
+}
+
+// ── Metric card ────────────────────────────────────────────────────────────
 
 class _MetricCard extends StatelessWidget {
   final String title;
@@ -222,6 +428,8 @@ class _MetricCard extends StatelessWidget {
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 title,

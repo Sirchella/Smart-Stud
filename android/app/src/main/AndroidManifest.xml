@@ -10,6 +10,8 @@
     <!-- Storage: for PDF/CSV export -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <!-- Camera: for heart rate (PPG) measurement -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <!-- Vibration: for distraction alerts -->
     <uses-permission android:name="android.permission.VIBRATE"/>
 
